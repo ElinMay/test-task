@@ -1,0 +1,13 @@
+# ignore all logs
+*.log
+
+# ignore all terraform private files
+*.tfvars
+*.tfplan
+*.lfstate
+*.lock*
+
+#ignore keys
+*.pem
+
+.DS_Store
