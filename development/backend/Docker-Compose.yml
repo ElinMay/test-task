@@ -2,7 +2,7 @@ version: '3'
 
 services:
   nginx:
-    image: nginx
+    image: elinmay/test-task:latest
     ports:
       - 80:80
     volumes:

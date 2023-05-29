@@ -5,7 +5,9 @@
   gather_facts: true
   vars:
     custom_hello_message: "Bitmedia labs test task {{ name }}"
+    build_dir: "/home/ubuntu/test-task/development/backend/"
   tasks:
+
     - name: Wait for SSH to become available
       wait_for_connection:
         delay: 5
@@ -44,21 +46,27 @@
       pip:
         name: docker
 
+    - name: Install docker-compose
+      remote_user: ubuntu
+      get_url: 
+        url : https://github.com/docker/compose/releases/download/1.25.1-rc1/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x,g+x'
+
     - name: Get stuff from git
       git:
         repo: git@github.com:ElinMay/test-task.git
-        dest: /opt/development/backend/
+        dest: /test-task
         clone: yes
         update: yes
+        key_file: /home/ubuntu/.ssh/id_rsa
+        version: test-task
 
     - name: Build and Push Docker Image
       shell: |
-            pwd
-            docker build -t {{ dockerhub_username }}/test-task:latest --build-arg hello_message="{{ custom_hello_message }}" .
-            docker login -u "{{ dockerhub_username }}" -p "{{ dockerhub_password }}"
-            docker push {{ dockerhub_username }}/test-task:latest
+            chdir={{build_dir}} docker build -t {{ dockerhub_username }}/test-task:latest --build-arg "HELLO_MESSAGE={{custom_hello_message}}" .
+            chdir={{build_dir}} docker login -u "{{ dockerhub_username }}" -p "{{ dockerhub_password }}"
+            chdir={{build_dir}} docker push {{ dockerhub_username }}/test-task:latest
 
-    - name: Run Docker Compose
-      command: docker-compose up -d
-      args:
-        chdir: ../../../development/backend/
+    - name: Run Nginx
+      command: chdir={{build_dir}} docker-compose up -d
